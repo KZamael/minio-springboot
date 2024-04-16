@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: minio-quick-start
+server:
+  port: 8088
+minio:
+  endpoint: http://127.0.0.1:9000 #Minio
+  bucketName: testbucket #bucketname
+  accessKey: ImxL60z5Wf1SwE433J5V #access-key
+  secretKey: gikPyXd5foMGZ6E2j0b2g9mYfXlE1DPKB2ldl4J0 #secret-key

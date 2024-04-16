@@ -1,0 +1,25 @@
+# reference https://docs.min.io/docs/minio-docker-quickstart-guide.html
+version: '3'
+services:
+  minio:
+    image: minio/minio:latest                                    # init image `minio/minio:latest`
+    container_name: minio                                        #container name 'minio'
+    restart: unless-stopped                                              #Specify the restart policy after the container exits to always restart, but do not consider containers that have been stopped when the Docker daemon is started.
+    volumes:                                                     # Data volume mounting path settings, mapping the local directory to the container directory
+      - "./minio/data:/data"
+      - "./minio/minio:/minio"
+      - "./minio/config:/root/.minio"
+    environment:                                      # set env,Equivalent to -e in the docker run command
+      TZ: Asia/Shanghai
+      LANG: en_US.UTF-8
+      MINIO_PROMETHEUS_AUTH_TYPE: "public"
+      MINIO_ACCESS_KEY: "root"                        # login name
+      MINIO_SECRET_KEY: "password"                    # login password
+    command: server /data  --console-address ":9001"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+    ports:                              #mapping port
+      - "9000:9000" # file upload&preview port
+      - "9001:9001" # console access po
