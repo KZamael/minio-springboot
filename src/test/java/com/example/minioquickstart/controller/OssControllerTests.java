@@ -1,7 +1,7 @@
-package com.example.minioquickstart;
+package com.example.minioquickstart.controller;
 
-import com.example.minioquickstart.controller.OSSController;
 import com.example.minioquickstart.utils.MinioUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,19 +17,12 @@ import static com.example.minioquickstart.constants.TestConstants.*;
 @SpringBootTest
 class OssControllerTests {
 
+
     @Autowired
     private OSSController ossController;
 
     @Autowired
     MinioUtils minioUtils;
-
-    public void tearDownFile(String fileName) {
-        ossController.deleteFile(fileName);
-    }
-
-    public void tearDownBucket(String bucketName) {
-        minioUtils.removeBucket(bucketName);
-    }
 
     @Test
     void expectCreateBucket_ToReturn_BucketSuccessfullyCreated() {
@@ -210,7 +203,6 @@ class OssControllerTests {
     @Test
     void expectDownload_ToReturn_Successful() throws IOException {
         // arrange
-
         InputStream content = getInputStream(IMG_FILE_NAME);
         MockMultipartFile mockMultipartFile = new MockMultipartFile(
                 FILE_DATA, IMG_FILE_NAME, TEXT_PLAIN, content
@@ -234,7 +226,6 @@ class OssControllerTests {
     @Test
     void expectDownload_ToReturn_DownloadFail() throws IOException {
         // arrange
-
         InputStream content = getInputStream(IMG_FILE_NAME);
         MockMultipartFile mockMultipartFile = new MockMultipartFile(
                 FILE_DATA, IMG_FILE_NAME, TEXT_PLAIN, content
@@ -247,9 +238,63 @@ class OssControllerTests {
         ossController.download(null, response);
 
         // assert
-
         // tear down
         tearDownFile(IMG_FILE_NAME);
+    }
+
+    @Test
+    void expectGetBucketPolicy_ToReturn_Success() throws IOException {
+        // arrange
+        String returnedMessage = ossController.createBucket(BUCKET_NAME);
+
+        Assertions.assertTrue(minioUtils.bucketExists(BUCKET_NAME));
+        Assertions.assertEquals("bucket successfully created", returnedMessage);
+
+        InputStream content = getInputStream(IMG_FILE_NAME);
+        MockMultipartFile mockMultipartFile = new MockMultipartFile(
+                FILE_DATA, IMG_FILE_NAME, TEXT_PLAIN, content
+        );
+
+        ossController.uploadFileWithStaticName(mockMultipartFile);
+
+        // Builder for bucket policy settings
+        StringBuilder builder = getStringBuilder();
+        minioUtils.setBucketPolicy(BUCKET_NAME, builder);
+
+        // act
+        String bucketPolicy = ossController.getBucketPolicy(BUCKET_NAME);
+
+        // assert
+        Assertions.assertEquals(POLICY_OBJECT, bucketPolicy);
+
+        // teardown
+        tearDownBucket(BUCKET_NAME);
+    }
+
+    @NotNull
+    private static StringBuilder getStringBuilder() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\n");
+        builder.append("    \"Statement\": [\n");
+        builder.append("        {\n");
+        builder.append("            \"Action\": [\n");
+        builder.append("                \"s3:GetBucketLocation\",\n");
+        builder.append("                \"s3:ListBucket\"\n");
+        builder.append("            ],\n");
+        builder.append("            \"Effect\": \"Allow\",\n");
+        builder.append("            \"Principal\": \"*\",\n");
+        builder.append(String.format("            \"Resource\": \"arn:aws:s3:::%s\"\n", BUCKET_NAME));
+        builder.append("        },\n");
+        builder.append("        {\n");
+        builder.append("            \"Action\": \"s3:GetObject\",\n");
+        builder.append("            \"Effect\": \"Allow\",\n");
+        builder.append("            \"Principal\": \"*\",\n");
+        builder.append(String.format("            \"Resource\": \"arn:aws:s3:::%s/%s*\"\n", BUCKET_NAME, IMG_FILE_NAME));
+        builder.append("        }\n");
+        builder.append("    ],\n");
+        builder.append("    \"Version\": \"2012-10-17\"\n");
+        builder.append("}\n");
+        return builder;
     }
 
     private InputStream getInputStream(String fileName) {
@@ -262,5 +307,13 @@ class OssControllerTests {
         }
 
         return inputStream;
+    }
+
+    private void tearDownFile(String fileName) {
+        ossController.deleteFile(fileName);
+    }
+
+    private void tearDownBucket(String bucketName) {
+        minioUtils.removeBucket(bucketName);
     }
 }

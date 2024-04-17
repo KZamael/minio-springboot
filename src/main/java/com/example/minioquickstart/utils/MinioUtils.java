@@ -72,6 +72,21 @@ public class MinioUtils {
     }
 
     /**
+     * Set Bucket strategy
+     *
+     * @param bucketName
+     * @return
+     */
+    @SneakyThrows(Exception.class)
+    public void setBucketPolicy(String bucketName, StringBuilder builder) {
+        minioClient.setBucketPolicy(
+                SetBucketPolicyArgs.builder()
+                        .bucket(bucketName)
+                        .config(builder.toString())
+                        .build());
+    }
+
+    /**
      * Get all Bucket list
      *
      * @return
@@ -360,11 +375,11 @@ public class MinioUtils {
     @SneakyThrows(Exception.class)
     public ObjectWriteResponse copyFile(String bucketName, String objectName, String srcBucketName, String srcObjectName) {
         return minioClient.copyObject(
-          CopyObjectArgs.builder()
-                  .source(CopySource.builder().bucket(bucketName).object(objectName).build())
-                  .bucket(srcBucketName)
-                  .object(srcBucketName)
-                  .build());
+                CopyObjectArgs.builder()
+                        .source(CopySource.builder().bucket(bucketName).object(objectName).build())
+                        .bucket(srcBucketName)
+                        .object(srcBucketName)
+                        .build());
     }
 
     /**
