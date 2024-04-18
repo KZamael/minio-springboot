@@ -114,7 +114,7 @@ public class OSSController {
         return minioUtils.getBucketPolicy(bucketName);
     }
 
-    public String uploadFileWithStaticName(@RequestParam("file") MultipartFile file) {
+    protected String uploadFileWithStaticName(@RequestParam("file") MultipartFile file) {
         try {
             // file name
             String fileName = file.getOriginalFilename();

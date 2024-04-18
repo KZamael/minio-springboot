@@ -180,9 +180,6 @@ class OssControllerTests {
 
             // assert
             Assertions.assertEquals("upload fail", file);
-
-            // teardown
-            tearDownFile(IMG_FILE_NAME);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -258,21 +255,21 @@ class OssControllerTests {
         ossController.uploadFileWithStaticName(mockMultipartFile);
 
         // Builder for bucket policy settings
-        StringBuilder builder = getStringBuilder();
+        StringBuilder builder = getPolicyStatement();
         minioUtils.setBucketPolicy(BUCKET_NAME, builder);
 
         // act
         String bucketPolicy = ossController.getBucketPolicy(BUCKET_NAME);
 
         // assert
-        Assertions.assertEquals(POLICY_OBJECT, bucketPolicy);
+        Assertions.assertEquals(TEST_POLICY_OBJECT, bucketPolicy);
 
         // teardown
         tearDownBucket(BUCKET_NAME);
     }
 
     @NotNull
-    private static StringBuilder getStringBuilder() {
+    private static StringBuilder getPolicyStatement() {
         StringBuilder builder = new StringBuilder();
         builder.append("{\n");
         builder.append("    \"Statement\": [\n");
